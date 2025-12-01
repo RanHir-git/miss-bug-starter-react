@@ -1,0 +1,36 @@
+[
+  {
+    "_id": "c101",
+    "title": "lady bug",
+    "description": "small red bug with black spots",
+    "severity": 2,
+    "createdAt": "2024-06-10T12:00:00Z"
+  },
+  {
+    "_id": "ma05",
+    "title": "ant",
+    "description": "tiny black insect that lives in colonies",
+    "severity": 3,
+    "createdAt": "2024-06-10T12:00:00Z"
+  },
+  {
+    "_id": "os23",
+    "title": "spider",
+    "description": "eight-legged arachnid that spins webs",
+    "severity": 1,
+    "createdAt": "2024-06-10T12:00:00Z"
+  },
+  {
+    "_id": "bt77",
+    "title": "beetle",
+    "description": "hard-shelled insect with wings",
+    "severity": 4,
+    "createdAt": "2024-06-10T12:00:00Z"
+  },
+  {
+    "_id": "0gqO",
+    "title": "cockroach",
+    "severity": 6,
+    "createdAt": "2025-12-01T14:27:55.186Z"
+  }
+]

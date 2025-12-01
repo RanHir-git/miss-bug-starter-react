@@ -9,13 +9,18 @@ export const bugService = {
     update,
     save,
     remove,
-    getDefaultFilter
+    getDefaultFilter,
+    saveBugsPdf
 }
 
+// Note: keep this function ES5/ES2015-compatible for the in-browser Babel setup
 function query(filterBy) {
     const params = new URLSearchParams()
-    if (filterBy?.txt) params.set('txt', filterBy.txt)
-    if (filterBy?.minSeverity != null) params.set('minSeverity', filterBy.minSeverity)
+
+    if (filterBy && filterBy.txt) params.set('txt', filterBy.txt)
+    if (filterBy && filterBy.minSeverity != null) {
+        params.set('minSeverity', filterBy.minSeverity)
+    }
 
     const queryStr = params.toString()
     const url = queryStr ? `/api/bug?${queryStr}` : '/api/bug'
@@ -76,4 +81,9 @@ function _createBugs() {
 
 function getDefaultFilter() {
     return { txt: '', minSeverity: 0 }
+}
+
+function saveBugsPdf(bugs) {
+    // Stub implementation - actual PDF generation is done on the backend
+    return Promise.resolve()
 }

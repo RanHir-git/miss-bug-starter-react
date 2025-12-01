@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 
 import { bugService } from './services/bug.service.back.js'
 import { loggerService } from './services/logger.service.js'
-
+import { pdfService } from './services/PDFService.js'
 // Resolve __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -64,13 +64,13 @@ app.get('/api/bug/:bugId', (req, res) => {
 
     let visitedBugs = []
 
-        if (req.cookies.visitedBugs) {
-            visitedBugs = JSON.parse(req.cookies.visitedBugs)
-        }
-        else {
-            visitedBugs = []
-        }
-    
+    if (req.cookies.visitedBugs) {
+        visitedBugs = JSON.parse(req.cookies.visitedBugs)
+    }
+    else {
+        visitedBugs = []
+    }
+
 
     if (!visitedBugs.includes(bugId)) {
         visitedBugs.push(bugId)
@@ -103,6 +103,26 @@ app.get('/api/bug/:bugId/remove', (req, res) => {
         .catch(err => {
             loggerService.error('ERROR: Cannot remove bug:', err)
             res.status(400).send('Cannot remove bug')
+        })
+})
+
+app.get('/api/bugs/savepdf', (req, res) => {
+    bugService.query({})
+        .then(bugs => {
+            const doc = pdfService.buildBugsPDF(bugs)
+
+            res.setHeader('Content-Type', 'application/pdf')
+            res.setHeader(
+                'Content-Disposition',
+                'attachment; filename="bugs.pdf"'
+            )
+
+            doc.pipe(res)
+            doc.end()
+        })
+        .catch(err => {
+            loggerService.error('ERROR: Cannot save bugs to pdf:', err)
+            res.status(400).send('Cannot save bugs to pdf')
         })
 })
 

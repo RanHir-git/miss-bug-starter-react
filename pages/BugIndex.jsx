@@ -2,7 +2,6 @@ const { useState, useEffect } = React
 
 import { bugService } from '../services/bug.service.local.js'
 import { showSuccessMsg, showErrorMsg } from '../services/event-bus.service.js'
-
 import { BugFilter } from '../cmps/BugFilter.jsx'
 import { BugList } from '../cmps/BugList.jsx'
 
@@ -61,12 +60,32 @@ export function BugIndex() {
         setFilterBy(prevFilter => ({ ...prevFilter, ...filterBy }))
     }
 
+    function saveBugsPdf() {
+        // Fetch the PDF and trigger a download without leaving the /bug route
+        fetch('/api/bugs/savepdf')
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to generate PDF')
+                return res.blob()
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = 'bugs.pdf'
+                document.body.appendChild(a)
+                a.click()
+                a.remove()
+                window.URL.revokeObjectURL(url)
+            })
+            .catch(err => showErrorMsg('Cannot save bugs to PDF', err.message || err))
+    }
+
     return <section className="bug-index main-content">
-        
         <BugFilter filterBy={filterBy} onSetFilterBy={onSetFilterBy} />
         <header>
             <h3>Bug List</h3>
             <button onClick={onAddBug}>Add Bug</button>
+            <button onClick={saveBugsPdf}>Save Bugs To PDF</button>
         </header>
         
         <BugList 

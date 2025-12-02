@@ -10,11 +10,22 @@ export const bugService = {
     getDefaultFilter
 }
 
+
+const PAGE_SIZE = 3
 const bugsFile = 'data/bug.json'
 const bugs = utilService.readJsonFile(bugsFile)
+_createBugs()
 
 function query(filterBy = getDefaultFilter()) {
-    const { txt, minSeverity } = filterBy
+    if (!bugs.length) _createBugs()
+
+    const {
+        txt,
+        minSeverity,
+        labels = '',
+        sortBy,
+        sortDir = 1
+    } = filterBy
 
     let filteredBugs = bugs
 
@@ -24,7 +35,44 @@ function query(filterBy = getDefaultFilter()) {
     }
 
     if (minSeverity) {
-        filteredBugs = filteredBugs.filter(bug => bug.severity >= minSeverity)
+        filteredBugs = filteredBugs.filter(bug => bug.severity >= +minSeverity)
+    }
+
+    if (labels) {
+        filteredBugs = filteredBugs.filter(bug => bug.labels.includes(labels))
+    }
+
+    // Sorting
+    if (sortBy) {
+        const dir = +sortDir === -1 ? -1 : 1
+
+        filteredBugs = filteredBugs.toSorted((a, b) => {
+            let aVal = a[sortBy]
+            let bVal = b[sortBy]
+
+            if (sortBy === 'createdAt') {
+                aVal = new Date(aVal).getTime()
+                bVal = new Date(bVal).getTime()
+            }
+
+            if (typeof aVal === 'string' && typeof bVal === 'string') {
+                aVal = aVal.toLowerCase()
+                bVal = bVal.toLowerCase()
+                if (aVal < bVal) return -1 * dir
+                if (aVal > bVal) return 1 * dir
+                return 0
+            }
+
+            if (aVal < bVal) return -1 * dir
+            if (aVal > bVal) return 1 * dir
+            return 0
+        })
+    }
+
+    if (filterBy.pageIdx !== undefined) {
+        const pageIdx = +filterBy.pageIdx || 0
+        const startIdx = pageIdx * PAGE_SIZE
+        filteredBugs = filteredBugs.slice(startIdx, startIdx + PAGE_SIZE)
     }
 
     return Promise.resolve(filteredBugs)
@@ -52,7 +100,8 @@ function add(bug) {
         title: bug.title,
         description: bug.description,
         severity: +bug.severity,
-        createdAt: bug.createdAt
+        createdAt: bug.createdAt,
+        labels: bug.labels || []
     }
     bugs.push(bugToSave)
     return _saveBugs().then(() => bugToSave)
@@ -61,8 +110,11 @@ function add(bug) {
 function update(bug) {
     const bugToUpdate = bugs.find(currBug => currBug._id === bug._id)
     if (!bugToUpdate) return Promise.reject(`No such bug ${bug._id}`)
-    bugToUpdate.vendor = bug.vendor
-    bugToUpdate.speed = bug.speed
+    bugToUpdate.title = bug.title
+    bugToUpdate.description = bug.description
+    bugToUpdate.severity = bug.severity
+    bugToUpdate.createdAt = bug.createdAt
+    bugToUpdate.labels = bug.labels || []
     return _saveBugs().then(() => bugToUpdate)
 }
 
@@ -76,7 +128,46 @@ function _saveBugs() {
     })
 }
 
-
 function getDefaultFilter() {
-    return { txt: '', minSeverity: 0 }
+    return {
+        txt: '',
+        minSeverity: 0,
+        labels: '',
+        sortBy: '',
+        sortDir: 1
+    }
+}
+
+function _createBugs() {
+    if (bugs.length) return
+
+    const demoBugs = [
+        {
+            _id: utilService.makeId(),
+            title: 'Ant invasion',
+            description: 'Trail of ants marching across the kitchen counter',
+            severity: 2,
+            createdAt: Date.now(),
+            labels: ['ant', 'home']
+        },
+        {
+            _id: utilService.makeId(),
+            title: 'Spider in the shower',
+            description: 'Big spider chilling in the corner of the shower',
+            severity: 3,
+            createdAt: Date.now(),
+            labels: ['spider', 'bathroom']
+        },
+        {
+            _id: utilService.makeId(),
+            title: 'Mosquito at night',
+            description: 'Annoying mosquito buzzing near your ear while you try to sleep',
+            severity: 4,
+            createdAt: Date.now(),
+            labels: ['mosquito', 'night']
+        }
+    ]
+
+    demoBugs.forEach(bug => bugs.push(bug))
+    _saveBugs()
 }

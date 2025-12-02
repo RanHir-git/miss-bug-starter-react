@@ -6,32 +6,37 @@ import { fileURLToPath } from 'url'
 import { bugService } from './services/bug.service.back.js'
 import { loggerService } from './services/logger.service.js'
 import { pdfService } from './services/PDFService.js'
+
 // Resolve __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
 
-// Express Config
-// Serve the current project folder (where index.html, app.js, assets, lib live)
-app.use(express.static(__dirname))
+app.use(express.static(path.join(__dirname, 'public')))
 app.use(cookieParser())
+app.use(express.json())
 
-// Root route - always send the SPA HTML
+// get all bugs
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'))
+    res.sendFile(path.join(__dirname, 'public', 'index.html'))
 })
 
-// API routes
+// get bugs by filter (and optional sorting)
 app.get('/api/bug', (req, res) => {
-    const filterBy = {
-        txt: req.query.txt || '',
-        minSeverity: +req.query.minSeverity || 0
-    }
+    const {
+        txt = '',
+        minSeverity = 0,
+        labels = '',
+        pageIdx = 0,
+        sortBy = '',
+        sortDir = 1
+    } = req.query
 
+    const filterBy = { txt, minSeverity, labels, pageIdx, sortBy, sortDir }
     bugService.query(filterBy)
         .then(bugs => {
-            res.json(bugs)
+            res.send(bugs)
         })
         .catch(err => {
             loggerService.error('ERROR: Cannot get bugs:', err)
@@ -39,26 +44,33 @@ app.get('/api/bug', (req, res) => {
         })
 })
 
-app.get('/api/bug/save', (req, res) => {
-    const bug = {
-        _id: req.query._id,
-        title: req.query.title,
-        description: req.query.description,
-        severity: +req.query.severity,
-        createdAt: req.query.createdAt
-    }
-
-    const func = (bug._id) ? 'update' : 'add'
-    bugService[func](bug)
-        .then((savedBug) => {
-            res.json(savedBug)
+// add bug
+app.post('/api/bug', (req, res) => {
+    const bug = req.body
+    bugService.add(bug)
+        .then(savedBug => {
+            res.send(savedBug)
         })
         .catch(err => {
-            loggerService.error('ERROR: Cannot save bug:', err)
-            res.status(400).send('Cannot save bug')
+            loggerService.error('ERROR: Cannot add bug:', err)
+            res.status(400).send('Cannot add bug')
         })
 })
 
+// update bug
+app.put('/api/bug/:bugId', (req, res) => {
+    const bug = { ...req.body, _id: req.params.bugId }
+    bugService.update(bug)
+        .then(savedBug => {
+            res.send(savedBug)
+        })
+        .catch(err => {
+            loggerService.error('ERROR: Cannot update bug:', err)
+            res.status(400).send('Cannot update bug')
+        })
+})
+
+//get bug by id
 app.get('/api/bug/:bugId', (req, res) => {
     const { bugId } = req.params
 
@@ -94,11 +106,12 @@ app.get('/api/bug/:bugId', (req, res) => {
         })
 })
 
-app.get('/api/bug/:bugId/remove', (req, res) => {
+//remove bug
+app.delete('/api/bug/:bugId', (req, res) => {
     const { bugId } = req.params
     bugService.remove(bugId)
         .then(() => {
-            res.send('bug removed')
+            res.send(bugId)
         })
         .catch(err => {
             loggerService.error('ERROR: Cannot remove bug:', err)
@@ -106,6 +119,7 @@ app.get('/api/bug/:bugId/remove', (req, res) => {
         })
 })
 
+//save bugs to pdf
 app.get('/api/bugs/savepdf', (req, res) => {
     bugService.query({})
         .then(bugs => {

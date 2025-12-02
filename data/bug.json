@@ -1,36 +1,53 @@
 [
   {
-    "_id": "c101",
-    "title": "lady bug",
-    "description": "small red bug with black spots",
+    "_id": "nCFm",
+    "title": "Ant invasion",
+    "description": "Trail of ants marching across the kitchen counter",
     "severity": 2,
-    "createdAt": "2024-06-10T12:00:00Z"
+    "createdAt": 1764679126757,
+    "labels": [
+      "ant",
+      "home"
+    ]
   },
   {
-    "_id": "ma05",
-    "title": "ant",
-    "description": "tiny black insect that lives in colonies",
+    "_id": "nKfp",
+    "title": "Spider in the shower",
+    "description": "Big spider chilling in the corner of the shower",
     "severity": 3,
-    "createdAt": "2024-06-10T12:00:00Z"
+    "createdAt": 1764679126757,
+    "labels": [
+      "spider",
+      "bathroom"
+    ]
   },
   {
-    "_id": "os23",
-    "title": "spider",
-    "description": "eight-legged arachnid that spins webs",
-    "severity": 1,
-    "createdAt": "2024-06-10T12:00:00Z"
-  },
-  {
-    "_id": "bt77",
-    "title": "beetle",
-    "description": "hard-shelled insect with wings",
+    "_id": "RNRB",
+    "title": "Mosquito at night",
+    "description": "Annoying mosquito buzzing near your ear while you try to sleep",
     "severity": 4,
-    "createdAt": "2024-06-10T12:00:00Z"
+    "createdAt": 1764679126757,
+    "labels": [
+      "mosquito",
+      "night"
+    ]
   },
   {
-    "_id": "0gqO",
-    "title": "cockroach",
-    "severity": 6,
-    "createdAt": "2025-12-01T14:27:55.186Z"
+    "_id": "WOez",
+    "title": "Bug 1764679589277",
+    "severity": 3,
+    "createdAt": "2025-12-02T12:46:31.145Z",
+    "labels": []
+  },
+  {
+    "_id": "DnfF",
+    "title": "cocorouch",
+    "description": "worst bug ever (by zoe)",
+    "severity": 10,
+    "createdAt": "2025-12-02T12:47:36.179Z",
+    "labels": [
+      "critical",
+      "dangerous"
+    ]
   }
 ]

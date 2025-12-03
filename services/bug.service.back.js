@@ -13,11 +13,11 @@ export const bugService = {
 
 const PAGE_SIZE = 3
 const bugsFile = 'data/bug.json'
-const bugs = utilService.readJsonFile(bugsFile)
+const gBugs = utilService.readJsonFile(bugsFile)
 _createBugs()
 
 function query(filterBy = getDefaultFilter()) {
-    if (!bugs.length) _createBugs()
+    if (!gBugs.length) _createBugs()
 
     const {
         txt,
@@ -27,7 +27,7 @@ function query(filterBy = getDefaultFilter()) {
         sortDir = 1
     } = filterBy
 
-    let filteredBugs = bugs
+    let filteredBugs = gBugs
 
     if (txt) {
         const regex = new RegExp(txt, 'i')
@@ -46,27 +46,21 @@ function query(filterBy = getDefaultFilter()) {
     if (sortBy) {
         const dir = +sortDir === -1 ? -1 : 1
 
-        filteredBugs = filteredBugs.toSorted((a, b) => {
-            let aVal = a[sortBy]
-            let bVal = b[sortBy]
-
-            if (sortBy === 'createdAt') {
-                aVal = new Date(aVal).getTime()
-                bVal = new Date(bVal).getTime()
-            }
-
-            if (typeof aVal === 'string' && typeof bVal === 'string') {
-                aVal = aVal.toLowerCase()
-                bVal = bVal.toLowerCase()
-                if (aVal < bVal) return -1 * dir
-                if (aVal > bVal) return 1 * dir
-                return 0
-            }
-
-            if (aVal < bVal) return -1 * dir
-            if (aVal > bVal) return 1 * dir
-            return 0
-        })
+        if (sortBy === 'title') {
+            filteredBugs = filteredBugs.toSorted((a, b) =>
+                a.title.toLowerCase().localeCompare(b.title.toLowerCase()) * dir
+            )
+        } else if (sortBy === 'severity') {
+            filteredBugs = filteredBugs.toSorted((a, b) =>
+                (a.severity - b.severity) * dir
+            )
+        } else if (sortBy === 'createdAt') {
+            filteredBugs = filteredBugs.toSorted((a, b) => {
+                const aTime = new Date(a.createdAt).getTime()
+                const bTime = new Date(b.createdAt).getTime()
+                return (aTime - bTime) * dir
+            })
+        }
     }
 
     if (filterBy.pageIdx !== undefined) {
@@ -80,16 +74,16 @@ function query(filterBy = getDefaultFilter()) {
 
 function getById(bugId) {
     // return Promise.reject('Not now!')
-    const bug = bugs.find(bug => bug._id === bugId)
+    const bug = gBugs.find(bug => bug._id === bugId)
     if (!bug) return Promise.reject(`No such bug ${bugId}`)
     return Promise.resolve(bug)
 }
 
 function remove(bugId) {
     // return Promise.reject('Not now!')
-    const idx = bugs.findIndex(bug => bug._id === bugId)
+    const idx = gBugs.findIndex(bug => bug._id === bugId)
     if (idx === -1) return Promise.reject(`No such bug ${bugId}`)
-    bugs.splice(idx, 1)
+    gBugs.splice(idx, 1)
     return _saveBugs()
 
 }
@@ -103,12 +97,12 @@ function add(bug) {
         createdAt: bug.createdAt,
         labels: bug.labels || []
     }
-    bugs.push(bugToSave)
+    gBugs.push(bugToSave)
     return _saveBugs().then(() => bugToSave)
 }
 
 function update(bug) {
-    const bugToUpdate = bugs.find(currBug => currBug._id === bug._id)
+    const bugToUpdate = gBugs.find(currBug => currBug._id === bug._id)
     if (!bugToUpdate) return Promise.reject(`No such bug ${bug._id}`)
     bugToUpdate.title = bug.title
     bugToUpdate.description = bug.description
@@ -120,7 +114,7 @@ function update(bug) {
 
 function _saveBugs() {
     return new Promise((resolve, reject) => {
-        const strBug = JSON.stringify(bugs, null, 2)
+        const strBug = JSON.stringify(gBugs, null, 2)
         fs.writeFile(bugsFile, strBug, (err) => {
             if (err) return reject('Cannot update bugs file')
             resolve()
@@ -139,7 +133,7 @@ function getDefaultFilter() {
 }
 
 function _createBugs() {
-    if (bugs.length) return
+    if (gBugs.length) return
 
     const demoBugs = [
         {
@@ -148,7 +142,7 @@ function _createBugs() {
             description: 'Trail of ants marching across the kitchen counter',
             severity: 2,
             createdAt: Date.now(),
-            labels: ['ant', 'home']
+            labels: ['ant', 'home','friendly','like sugar']
         },
         {
             _id: utilService.makeId(),
@@ -156,7 +150,7 @@ function _createBugs() {
             description: 'Big spider chilling in the corner of the shower',
             severity: 3,
             createdAt: Date.now(),
-            labels: ['spider', 'bathroom']
+            labels: ['spider', 'bathroom','friend']
         },
         {
             _id: utilService.makeId(),
@@ -164,10 +158,39 @@ function _createBugs() {
             description: 'Annoying mosquito buzzing near your ear while you try to sleep',
             severity: 4,
             createdAt: Date.now(),
-            labels: ['mosquito', 'night']
+            labels: ['mosquito', 'night','annoying']
+        },
+        {
+            _id: utilService.makeId(),
+            title: 'Cocorouch',
+            description: 'Worst bug ever (by zoe)',
+            severity: 10,
+            createdAt: Date.now(),
+            labels: ['critical', 'dangerous','annoying']
+        },
+        {
+            _id: utilService.makeId(),
+            title: 'beetle',
+            severity: 3,
+            createdAt: Date.now(),
+            labels: ['bug', 'harmless']
+        },
+        {
+            _id: utilService.makeId(),
+            title: 'fly',
+            severity: 3,
+            createdAt: Date.now(),
+            labels: ['bug', 'harmless']
+        },
+        {
+            _id: utilService.makeId(),
+            title: 'butterfly',
+            severity: 3,
+            createdAt: Date.now(),
+            labels: ['pretty', 'beautiful','harmless']
         }
     ]
 
-    demoBugs.forEach(bug => bugs.push(bug))
+    demoBugs.forEach(bug => gBugs.push(bug))
     _saveBugs()
 }

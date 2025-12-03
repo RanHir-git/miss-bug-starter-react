@@ -3,10 +3,11 @@ import cookieParser from 'cookie-parser'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+import { userService } from './services/user.service.js'
 import { bugService } from './services/bug.service.back.js'
 import { loggerService } from './services/logger.service.js'
 import { pdfService } from './services/PDFService.js'
-
+import { authService } from './services/auth.service.js'
 // Resolve __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -46,8 +47,11 @@ app.get('/api/bug', (req, res) => {
 
 // add bug
 app.post('/api/bug', (req, res) => {
+    const loggedinUser = authService.validateToken(req.cookies.loginToken)
+    if (!loggedinUser) return res.status(401).send('cant add bug')
+
     const bug = req.body
-    bugService.add(bug)
+    bugService.add(bug, loggedinUser)
         .then(savedBug => {
             res.send(savedBug)
         })
@@ -59,8 +63,11 @@ app.post('/api/bug', (req, res) => {
 
 // update bug
 app.put('/api/bug/:bugId', (req, res) => {
+    const loggedinUser = authService.validateToken(req.cookies.loginToken)
+    if (!loggedinUser) return res.status(401).send('cant update bug')
+
     const bug = { ...req.body, _id: req.params.bugId }
-    bugService.update(bug)
+    bugService.update(bug,loggedinUser)
         .then(savedBug => {
             res.send(savedBug)
         })
@@ -74,8 +81,7 @@ app.put('/api/bug/:bugId', (req, res) => {
 app.get('/api/bug/:bugId', (req, res) => {
     const { bugId } = req.params
 
-    let visitedBugs = []
-
+    let visitedBugs = []    //visited bugs from cookies
     if (req.cookies.visitedBugs) {
         visitedBugs = JSON.parse(req.cookies.visitedBugs)
     }
@@ -93,9 +99,7 @@ app.get('/api/bug/:bugId', (req, res) => {
     if (visitedBugs.length > 3) {
         return res.status(401).send('Wait for a bit')
     }
-
     res.cookie('visitedBugs', JSON.stringify(visitedBugs), { maxAge: 7000 })
-
     bugService.getById(bugId)
         .then(bug => {
             res.json(bug)
@@ -108,8 +112,10 @@ app.get('/api/bug/:bugId', (req, res) => {
 
 //remove bug
 app.delete('/api/bug/:bugId', (req, res) => {
+    const loggedinUser = authService.validateToken(req.cookies.loginToken)
+    if (!loggedinUser) return res.status(401).send('cant remove bug')
     const { bugId } = req.params
-    bugService.remove(bugId)
+    bugService.remove(bugId,loggedinUser)
         .then(() => {
             res.send(bugId)
         })
@@ -140,7 +146,80 @@ app.get('/api/bugs/savepdf', (req, res) => {
         })
 })
 
-const port = 3030
+
+
+// User API
+app.get('/api/user', (req, res) => {
+    userService
+        .query()
+        .then(users => res.send(users))
+        .catch(err => {
+            loggerService.error('Cannot load users', err)
+            res.status(400).send('Cannot load users')
+        })
+})
+
+app.get('/api/user/:userId', (req, res) => {
+    const { userId } = req.params
+
+    userService
+        .getById(userId)
+        .then(user => res.send(user))
+        .catch(err => {
+            loggerService.error('Cannot load user', err)
+            res.status(400).send('Cannot load user')
+        })
+})
+
+app.delete('/api/user/:userId', (req, res) => {
+    const { userId } = req.params
+    userService.remove(userId)
+        .then(() => res.send(userId))
+        .catch(err => {
+            loggerService.error('Cannot remove user', err)
+            res.status(400).send('Cannot remove user')
+        })
+})
+
+
+// Auth API
+app.post('/api/auth/login', (req, res) => {
+    const credentials = req.body
+    authService
+        .checkLogin(credentials)
+        .then(user => {
+            const loginToken = authService.getLoginToken(user)
+            res.cookie('loginToken', loginToken)
+            res.send(user)
+        })
+        .catch(() => res.status(404).send('Invalid Credentials'))
+})
+
+app.post('/api/auth/signup', (req, res) => {
+    const credentials = req.body
+
+    userService
+        .add(credentials)
+        .then(user => {
+            if (user) {
+                const loginToken = authService.getLoginToken(user)
+                res.cookie('loginToken', loginToken)
+                res.send(user)
+            } else {
+                res.status(400).send('Cannot signup')
+            }
+        })
+        .catch(err => res.status(400).send('Username taken.'))
+})
+
+app.post('/api/auth/logout', (req, res) => {
+    res.clearCookie('loginToken')
+    res.send('logged-out!')
+})
+
+
+
+const port = process.env.PORT || 3030
 app.listen(port, () =>
     loggerService.info(`Server listening on port http://127.0.0.1:${port}/`)
 )

@@ -1,0 +1,64 @@
+[
+  {
+    "_id": "u101",
+    "fullname": "Puki Ja",
+    "username": "puki.ja",
+    "password": "puki123",
+    "isAdmin": true
+  },
+  {
+    "_id": "u102",
+    "fullname": "Muki Bunny",
+    "username": "muki.bunny",
+    "password": "muki123"
+  },
+  {
+    "fullname": "Kiki Kitten",
+    "_id": "6iykr",
+    "username": "kiki.kitten",
+    "password": "kiki123"
+  },
+  {
+    "fullname": "AA Ant",
+    "_id": "6RyQp",
+    "username": "aa.ant2",
+    "password": "aa123"
+  },
+  {
+    "fullname": "Gugu Goat",
+    "_id": "qLEdY",
+    "username": "gugu.goat",
+    "password": "gugu123"
+  },
+  {
+    "fullname": "Mumu Mouse",
+    "_id": "tUZPy",
+    "username": "mumu.mouse",
+    "password": "mumu123"
+  },
+  {
+    "fullname": "CC Clown",
+    "_id": "wfawE",
+    "username": "cc.clown",
+    "password": "cc123"
+  },
+  {
+    "fullname": "Bob Builder",
+    "isAdmin": true,
+    "_id": "GOtHH",
+    "username": "bob.builder",
+    "password": "bob123"
+  },
+  {
+    "fullname": "aa",
+    "_id": "tl3ps",
+    "username": "aa",
+    "password": "aa123"
+  },
+  {
+    "username": "RanHir",
+    "password": "16273849",
+    "fullname": "Ran Hirschorn",
+    "_id": "4oIS"
+  }
+]

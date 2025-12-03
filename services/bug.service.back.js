@@ -79,16 +79,20 @@ function getById(bugId) {
     return Promise.resolve(bug)
 }
 
-function remove(bugId) {
-    // return Promise.reject('Not now!')
+function remove(bugId, loggedinUser) {
     const idx = gBugs.findIndex(bug => bug._id === bugId)
     if (idx === -1) return Promise.reject(`No such bug ${bugId}`)
+    if (!loggedinUser) return Promise.reject('Unauthorized')
+    const bug = gBugs[idx]
+    const isOwner = bug.creator && bug.creator._id === loggedinUser._id
+    const isAdmin = !!loggedinUser.isAdmin
+    if (!isOwner && !isAdmin) return Promise.reject('Unauthorized')
+
     gBugs.splice(idx, 1)
     return _saveBugs()
-
 }
 
-function add(bug) {
+function add(bug, loggedinUser) {
     const bugToSave = {
         _id: utilService.makeId(),
         title: bug.title,
@@ -97,13 +101,21 @@ function add(bug) {
         createdAt: bug.createdAt,
         labels: bug.labels || []
     }
+    if (!loggedinUser) return Promise.reject('You must be logged in to add a bug')
+    bugToSave.creator = loggedinUser
     gBugs.push(bugToSave)
     return _saveBugs().then(() => bugToSave)
 }
 
-function update(bug) {
+function update(bug, loggedinUser) {
     const bugToUpdate = gBugs.find(currBug => currBug._id === bug._id)
     if (!bugToUpdate) return Promise.reject(`No such bug ${bug._id}`)
+
+    if (!loggedinUser) return Promise.reject('Unauthorized to edit this bug')
+    const isOwner = bugToUpdate.creator && bugToUpdate.creator._id === loggedinUser._id
+    const isAdmin = !!loggedinUser.isAdmin
+    if (!isOwner && !isAdmin) return Promise.reject('Unauthorized to edit this bug')
+
     bugToUpdate.title = bug.title
     bugToUpdate.description = bug.description
     bugToUpdate.severity = bug.severity
@@ -142,7 +154,11 @@ function _createBugs() {
             description: 'Trail of ants marching across the kitchen counter',
             severity: 2,
             createdAt: Date.now(),
-            labels: ['ant', 'home','friendly','like sugar']
+            labels: ['ant', 'home', 'friendly', 'like sugar'],
+            creator: {
+                _id: utilService.makeId(),
+                fullname: 'John Doe',
+            }
         },
         {
             _id: utilService.makeId(),
@@ -150,7 +166,11 @@ function _createBugs() {
             description: 'Big spider chilling in the corner of the shower',
             severity: 3,
             createdAt: Date.now(),
-            labels: ['spider', 'bathroom','friend']
+            labels: ['spider', 'bathroom', 'friend'],
+            creator: {
+                _id: utilService.makeId(),
+                fullname: 'John Doe',
+            }
         },
         {
             _id: utilService.makeId(),
@@ -158,7 +178,11 @@ function _createBugs() {
             description: 'Annoying mosquito buzzing near your ear while you try to sleep',
             severity: 4,
             createdAt: Date.now(),
-            labels: ['mosquito', 'night','annoying']
+            labels: ['mosquito', 'night', 'annoying'],
+            creator: {
+                _id: utilService.makeId(),
+                fullname: 'John Doe',
+            }
         },
         {
             _id: utilService.makeId(),
@@ -166,28 +190,44 @@ function _createBugs() {
             description: 'Worst bug ever (by zoe)',
             severity: 10,
             createdAt: Date.now(),
-            labels: ['critical', 'dangerous','annoying']
+            labels: ['critical', 'dangerous', 'annoying'],
+            creator: {
+                _id: utilService.makeId(),
+                fullname: 'John Doe',
+            }
         },
         {
             _id: utilService.makeId(),
             title: 'beetle',
             severity: 3,
             createdAt: Date.now(),
-            labels: ['bug', 'harmless']
+            labels: ['bug', 'harmless'],
+            creator: {
+                _id: utilService.makeId(),
+                fullname: 'John Doe',
+            }
         },
         {
             _id: utilService.makeId(),
             title: 'fly',
             severity: 3,
             createdAt: Date.now(),
-            labels: ['bug', 'harmless']
+            labels: ['bug', 'harmless'],
+            creator: {
+                _id: utilService.makeId(),
+                fullname: 'John Doe',
+            }
         },
         {
             _id: utilService.makeId(),
             title: 'butterfly',
             severity: 3,
             createdAt: Date.now(),
-            labels: ['pretty', 'beautiful','harmless']
+            labels: ['pretty', 'beautiful', 'harmless'],
+            creator: {
+                _id: utilService.makeId(),
+                fullname: 'John Doe',
+            }
         }
     ]
 

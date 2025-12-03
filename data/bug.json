@@ -14,22 +14,11 @@
     "_id": "nKfp",
     "title": "Spider in the shower",
     "description": "Big spider chilling in the corner of the shower",
-    "severity": 3,
+    "severity": 4,
     "createdAt": 1764679126757,
     "labels": [
       "spider",
       "bathroom"
-    ]
-  },
-  {
-    "_id": "RNRB",
-    "title": "Mosquito at night",
-    "description": "Annoying mosquito buzzing near your ear while you try to sleep",
-    "severity": 4,
-    "createdAt": 1764679126757,
-    "labels": [
-      "mosquito",
-      "night"
     ]
   },
   {
